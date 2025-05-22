@@ -8,6 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.minebratassesment.R;
 import com.example.minebratassesment.model.Repo;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class RepoAdapter extends RecyclerView.Adapter<RepoAdapter.RepoViewHolder
     @Override
     public RepoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new RepoViewHolder(LayoutInflater.from(parent.getContext())
-                .inflate(android.R.layout.simple_list_item_1, parent, false));
+                .inflate(R.layout.recycler_view, parent, false));
     }
 
     @Override
@@ -46,7 +47,7 @@ public class RepoAdapter extends RecyclerView.Adapter<RepoAdapter.RepoViewHolder
 
         RepoViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(android.R.id.text1);
+            name = itemView.findViewById(R.id.user_txt);
         }
     }
 }

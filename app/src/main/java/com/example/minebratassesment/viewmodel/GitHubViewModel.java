@@ -33,8 +33,8 @@ public class GitHubViewModel extends ViewModel {
     public LiveData<String> getError() { return error; }
 
     public void fetchUser(String username) {
-        if (username.length() < 2 || username.length() > 25) {
-            error.setValue("Username must be 2-25 characters.");
+        if (username == null || username.trim().isEmpty()) {
+            error.setValue("Invalid username.");
             return;
         }
 
@@ -46,7 +46,7 @@ public class GitHubViewModel extends ViewModel {
             @Override
             public void onResponse(Call<GitHubUser> call, Response<GitHubUser> response) {
                 loading.setValue(false);
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
                     user.setValue(response.body());
                     repos.setValue(new ArrayList<>());
                     loadRepos();
@@ -69,7 +69,7 @@ public class GitHubViewModel extends ViewModel {
             @Override
             public void onResponse(Call<List<Repo>> call, Response<List<Repo>> response) {
                 loading.setValue(false);
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
                     List<Repo> currentList = repos.getValue();
                     currentList.addAll(response.body());
                     repos.setValue(currentList);
@@ -84,4 +84,3 @@ public class GitHubViewModel extends ViewModel {
         });
     }
 }
-

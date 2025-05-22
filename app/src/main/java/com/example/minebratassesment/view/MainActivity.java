@@ -1,7 +1,9 @@
 package com.example.minebratassesment.view;
 
+import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -33,14 +35,16 @@ public class MainActivity extends AppCompatActivity {
     private TextView name, bio, repoCount, error;
     private RecyclerView recyclerView;
     private LinearLayout lnrSearch;
+    private ProgressBar progressBar;
+    private Button searchBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // Make sure you have the layout
+        setContentView(R.layout.activity_main);
 
         usernameInput = findViewById(R.id.username_input);
-        Button searchBtn = findViewById(R.id.search_btn);
+        searchBtn = findViewById(R.id.search_btn);
         avatar = findViewById(R.id.avatar);
         name = findViewById(R.id.name);
         bio = findViewById(R.id.bio);
@@ -48,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         error = findViewById(R.id.error);
         recyclerView = findViewById(R.id.recycler);
         lnrSearch = findViewById(R.id.lnr_search);
+
 
         viewModel = new ViewModelProvider(this).get(GitHubViewModel.class);
 
@@ -62,10 +67,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         searchBtn.setOnClickListener(v -> {
-            String user = usernameInput.getText().toString().trim();
-            if (!TextUtils.isEmpty(user)) {
-                viewModel.fetchUser(user);
+            String input = usernameInput.getText().toString().trim();
+            String extractedUsername = extractUsernameFromInput(input);
+
+            if (!TextUtils.isEmpty(extractedUsername)) {
+                viewModel.fetchUser(extractedUsername);
+                error.setVisibility(GONE);
                 lnrSearch.setVisibility(VISIBLE);
+            } else {
+                error.setText("Please enter a valid GitHub username or profile URL.");
+                error.setVisibility(VISIBLE);
             }
         });
 
@@ -74,20 +85,44 @@ public class MainActivity extends AppCompatActivity {
 
     private void observeViewModel() {
         viewModel.getUser().observe(this, u -> {
-            name.setText("Name: " + u.name);
-            bio.setText("Bio: " + u.bio);
+            name.setText("Name: " + (u.name != null ? u.name : "N/A"));
+            bio.setText("Bio: " + (u.bio != null ? u.bio : "N/A"));
             repoCount.setText("Repos: " + u.public_repos);
             Glide.with(this).load(u.avatar_url).into(avatar);
         });
 
         viewModel.getRepos().observe(this, repos -> adapter.setRepoList(repos));
+
+        viewModel.getLoading().observe(this, isLoading -> {
+            if (progressBar != null) {
+                progressBar.setVisibility(isLoading ? VISIBLE : GONE);
+            }
+        });
+
         viewModel.getError().observe(this, msg -> {
             if (msg != null) {
-                error.setVisibility(VISIBLE);
                 error.setText(msg);
+                error.setVisibility(VISIBLE);
             } else {
-                error.setVisibility(View.GONE);
+                error.setVisibility(GONE);
             }
         });
     }
+
+    private String extractUsernameFromInput(String input) {
+        input = input.trim();
+        if (input.startsWith("http://github.com/") || input.startsWith("https://github.com/")) {
+            Uri uri = Uri.parse(input);
+            String username = uri.getLastPathSegment();
+
+            // Remove any trailing slashes or query strings
+            if (username != null && username.contains("?")) {
+                username = username.split("\\?")[0];
+            }
+            return TextUtils.isEmpty(username) ? null : username;
+        } else {
+            return input;
+        }
+    }
+
 }
