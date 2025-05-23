@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String extractUsernameFromInput(String input) {
         input = input.trim();
-        if (input.startsWith("http://github.com/") || input.startsWith("https://github.com/")) {
+        if (input.startsWith("https://github.com/")) {
             Uri uri = Uri.parse(input);
             String username = uri.getLastPathSegment();
 
