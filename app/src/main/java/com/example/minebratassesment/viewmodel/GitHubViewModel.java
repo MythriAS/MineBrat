@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.minebratassesment.interfaces.ResultListener;
 import com.example.minebratassesment.model.GitHubUser;
 import com.example.minebratassesment.model.Repo;
 import com.example.minebratassesment.repository.GitHubRepository;
@@ -17,6 +18,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class GitHubViewModel extends ViewModel {
+
     private final GitHubRepository repository = new GitHubRepository();
 
     private final MutableLiveData<GitHubUser> user = new MutableLiveData<>();
@@ -29,7 +31,7 @@ public class GitHubViewModel extends ViewModel {
 
     public LiveData<GitHubUser> getUser() { return user; }
     public LiveData<List<Repo>> getRepos() { return repos; }
-    public LiveData<Boolean> getLoading() { return loading; }
+
     public LiveData<String> getError() { return error; }
 
     public void fetchUser(String username) {
@@ -42,44 +44,41 @@ public class GitHubViewModel extends ViewModel {
         currentUsername = username;
         currentPage = 1;
 
-        repository.getUser(username).enqueue(new Callback<GitHubUser>() {
+        repository.getUser(username, new ResultListener<GitHubUser>() {
             @Override
-            public void onResponse(Call<GitHubUser> call, Response<GitHubUser> response) {
+            public void onSuccess(GitHubUser data) {
+                user.setValue(data);
+                repos.setValue(new ArrayList<>());
+                loadRepos();
                 loading.setValue(false);
-                if (response.isSuccessful() && response.body() != null) {
-                    user.setValue(response.body());
-                    repos.setValue(new ArrayList<>());
-                    loadRepos();
-                } else {
-                    error.setValue("User not found.");
-                }
             }
 
             @Override
-            public void onFailure(Call<GitHubUser> call, Throwable t) {
+            public void onError(String message) {
                 loading.setValue(false);
-                error.setValue("Error: " + t.getMessage());
+                error.setValue(message);
             }
         });
     }
 
     public void loadRepos() {
         loading.setValue(true);
-        repository.getRepos(currentUsername, currentPage, 10).enqueue(new Callback<List<Repo>>() {
+        repository.getRepos(currentUsername, currentPage, 10, new ResultListener<List<Repo>>() {
             @Override
-            public void onResponse(Call<List<Repo>> call, Response<List<Repo>> response) {
-                loading.setValue(false);
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Repo> currentList = repos.getValue();
-                    currentList.addAll(response.body());
+            public void onSuccess(List<Repo> data) {
+                List<Repo> currentList = repos.getValue();
+                if (currentList != null) {
+                    currentList.addAll(data);
                     repos.setValue(currentList);
                     currentPage++;
                 }
+                loading.setValue(false);
             }
 
             @Override
-            public void onFailure(Call<List<Repo>> call, Throwable t) {
+            public void onError(String message) {
                 loading.setValue(false);
+                error.setValue(message);
             }
         });
     }

@@ -2,9 +2,7 @@ package com.example.minebratassesment.network;
 
 import com.example.minebratassesment.model.GitHubUser;
 import com.example.minebratassesment.model.Repo;
-
 import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;

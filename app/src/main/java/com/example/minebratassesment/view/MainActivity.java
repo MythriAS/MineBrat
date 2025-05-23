@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView name, bio, repoCount, error;
     private RecyclerView recyclerView;
     private LinearLayout lnrSearch;
-    private ProgressBar progressBar;
     private Button searchBtn;
 
     @Override
@@ -93,12 +92,6 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.getRepos().observe(this, repos -> adapter.setRepoList(repos));
 
-        viewModel.getLoading().observe(this, isLoading -> {
-            if (progressBar != null) {
-                progressBar.setVisibility(isLoading ? VISIBLE : GONE);
-            }
-        });
-
         viewModel.getError().observe(this, msg -> {
             if (msg != null) {
                 error.setText(msg);
@@ -115,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = Uri.parse(input);
             String username = uri.getLastPathSegment();
 
-            // Remove any trailing slashes or query strings
             if (username != null && username.contains("?")) {
                 username = username.split("\\?")[0];
             }
